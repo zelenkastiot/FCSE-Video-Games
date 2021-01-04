@@ -1,0 +1,13 @@
+"""
+
+ Created on 06-Nov-20
+ @author: Kiril Zelenkovski
+Барање 4:  
+Брзината на играта е дефнирана наполно со променливата: Frames Per Second - FPS. 
+Почетната е 30fps, ние ќе ја намалиме на 22fps. 
+
+
+
+""" 
+
+FPS = 22

@@ -1,0 +1,36 @@
+"""
+
+ Created on 06-Nov-20
+ @author: Kiril Zelenkovski
+
+Барање 5: 
+Во почетниот код постои функција која учествува во поделба на полињата
+по групи - splitIntoGroupsOf(groupSize, theList)
+- groupSize (int): колкави групи сакаме да добиеме (def вредност е 8)  
+- theList (list): листа од сите полиња (boxes) 
+
+Оваа ф-ја се повикува во startGameAnimation, каде за default вредност е 8. 
+Тргнувајќи од идејата да се направи група од сите елементи при овој повик 
+може како аргумент за големина на група да се зададе - бр. на полиња во играта.
+
+Во Python ова може да се добие со користење на len() функцијатa:  
+
+boxGroups = splitIntoGroupsOf(len(boxes), boxes)
+Оваа вредност len(boxes) == BOARD_WIDTH * BOARD_HEIGHT
+"""
+def startGameAnimation(board):
+    # Randomly reveal the boxes 8 at a time.
+    coveredBoxes = generateRevealedBoxesData(False)
+    boxes = []
+    for x in range(BOARD_WIDTH):
+        for y in range(BOARD_HEIGHT):
+            boxes.append((x, y))
+    random.shuffle(boxes)
+    boxGroups = splitIntoGroupsOf(len(boxes), boxes)
+
+    drawBoard(board, coveredBoxes)
+    for boxGroup in boxGroups:
+        revealBoxesAnimation(board, boxGroup)
+        coverBoxesAnimation(board, boxGroup)
+
+

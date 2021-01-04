@@ -1,0 +1,30 @@
+"""
+
+ Created on 06-Nov-20
+ @author: Kiril Zelenkovski
+
+Барање 7:
+Функцијата drawBoxCovers, прима како аргументи board (таблата), boxes (лист од полиња со x/y кординати)
+и coverage (т.е. дали поле/полиња се покриени или не). Самата ф-ја црта (исцртува) покривање на поле 
+(што е всушност бел квардат), само доколку coverage > 0. Кога параметарот е =0, тогаш немаме никакво прикривање.
+Ако coverage > 0, пример 15, тогаш има 15px широко бело
+поле кое ја покрива таа икона. Најголемата бројка што може
+coverage да биде, е BOX_SIZE. Тогаш целата икона е целосно 
+покриена. 
+
+Доколку се смени исцртувањето да биде со следниот запис, има различен начин на откривање и покривање. 
+
+""" 
+def drawBoxCovers(board, boxes, coverage):
+    # Draws boxes being covered/revealed. "boxes" is a list
+    # of two-item lists, which have the x & y spot of the box.
+    for box in boxes:
+        left, top = leftTopCoordsOfBox(box[0], box[1])
+        pygame.draw.rect(DISPLAYSURF, BG_COLOR, (left, top, BOX_SIZE, BOX_SIZE))
+        shape, color = getShapeAndColor(board, box[0], box[1])
+        drawIcon(shape, color, box[0], box[1])
+        if coverage > 0:  # only draw the cover if there is an coverage
+            pygame.draw.rect(DISPLAYSURF, BOX_COLOR, (left, top, coverage, coverage))
+    pygame.display.update()
+    FPSCLOCK.tick(FPS)
+

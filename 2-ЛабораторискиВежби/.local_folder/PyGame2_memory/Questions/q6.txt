@@ -1,0 +1,62 @@
+"""
+
+ Created on 06-Nov-20
+ @author: Kiril Zelenkovski
+
+Барање 6:
+Појдовна точка за креација на оваа анимација беше да разберам како се 
+позиционираат (со помош на кординати) самите полиња за играње. 
+Тие користат 2 типа на опис на точка во прозорецот: 
+
+- Преку кординати внатре во играта: пример прва коцка е (0, 0), десно за едно во ист ред (0, 1) итн. 
+- Преку кординати на самиот прозорец (пиксели): пример за првата коцка е (70, 60), 
+  доколку GAP_SIZE=10, BOX_SIZE=40, десно за едно во ист ред е коцката (70+40+10, 60) = (110, 60) итн.
+
+Главната идеја е користење на функцијата leftTopCoordsOfBox(x, y) која за дадени кординати од игра
+враќа пиксели на екранот. Со повикување на leftTopCoordsOfBox(0, 0) јас ги добивам почетните корд.
+на самата игра и потоа со помош на BOX_SIZE и GAP_SIZE (ова е променлива за простор меѓу коцки) ги
+исцртувам со функцијата gamWonAnimation(board).
+
+Внатре во самиот код кога играта е победена се повикува ф-јата gameWonAnimation(board). Оваа ја 
+алтерираме така што имаме 2 loops: 
+
+- еден за исцртување на сите квадрати под и над самите полиња (долж х-оска; хоризонтално) 
+- еден за исцртување на сите квадрати лево и десно од самите полиња (долж y-оска; вертикално) 
+Еден квадрат го исцртувам со помош на: 
+pygame.draw.rect(DISPLAYSURF, boxColor1, (x_position, y_position, BOX_SIZE, BOX_SIZE))
+
+x_position и y_position се во кординатен за пиксели, не за играта. 
+""" 
+def gameWonAnimation(board):
+    # flash the background color when the player has won
+
+    boxColor1 = (0, 0, 0)
+    boxColor2 = (100, 0, 100)
+
+    # loop animation
+    for i in range(6):
+        boxColor1, boxColor2 = boxColor2, boxColor1  # swap colors
+        # UP - BELOW: along x-axis
+        for x in range(BOARD_WIDTH):
+            x_cord, y_cord = leftTopCoordsOfBox(0, 0)
+
+            x_position_first = x_cord + (GAP_SIZE+BOX_SIZE)*x
+            y_position_up = y_cord - GAP_SIZE - BOX_SIZE
+            y_position_dw = y_cord + (GAP_SIZE + BOX_SIZE)*BOARD_HEIGHT
+            pygame.draw.rect(DISPLAYSURF, boxColor1, (x_position_first, y_position_up, BOX_SIZE, BOX_SIZE))
+            pygame.draw.rect(DISPLAYSURF, boxColor1, (x_position_first, y_position_dw, BOX_SIZE, BOX_SIZE))
+
+            pygame.display.update()
+
+        # LEFT - RIGHT: along y-axis
+        for y in range(-1, BOARD_HEIGHT+1):
+            x_cord, y_cord = leftTopCoordsOfBox(0, 0)
+
+            y_position_second = y_cord + (GAP_SIZE+BOX_SIZE)*y
+            x_position_le = x_cord - GAP_SIZE - BOX_SIZE
+            x_position_ri = x_cord + (GAP_SIZE + BOX_SIZE)*BOARD_WIDTH
+            pygame.draw.rect(DISPLAYSURF, boxColor1, (x_position_le, y_position_second, BOX_SIZE, BOX_SIZE))
+            pygame.draw.rect(DISPLAYSURF, boxColor1, (x_position_ri, y_position_second, BOX_SIZE, BOX_SIZE))
+
+            pygame.display.update()
+            pygame.time.wait(100)
