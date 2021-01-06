@@ -1,11 +1,18 @@
-# Star Pusher (a Sokoban clone)
-# By Al Sweigart al@inventwithpython.com
-# http://inventwithpython.com/pygame
-# Released under a "Simplified BSD" license
+"""
 
-import random, sys, copy, os, pygame
+ Created on 30-Dec-20
+ @author: Kiril Zelenkovski
+
+"""
+import copy
+import os
+import pygame
+import random
+import sys
+
 from pygame.locals import *
-
+import warnings
+warnings.filterwarnings("ignore")
 FPS = 30 # frames per second to update the screen
 WINWIDTH = 800 # width of the program's window, in pixels
 WINHEIGHT = 600 # height in pixels
@@ -21,7 +28,7 @@ CAM_MOVE_SPEED = 5 # how many pixels per frame the camera moves
 
 # The percentage of outdoor tiles that have additional
 # decoration on them, such as a tree or rock.
-OUTSIDE_DECORATION_PCT = 20
+OUTSIDE_DECORATION_PCT = 80 ################################################################ Барање 3
 
 BRIGHTBLUE = (  0, 170, 255)
 WHITE      = (255, 255, 255)
@@ -76,7 +83,8 @@ def main():
     TILEMAPPING = {'x': IMAGESDICT['corner'],
                    '#': IMAGESDICT['wall'],
                    'o': IMAGESDICT['inside floor'],
-                   ' ': IMAGESDICT['outside floor']}
+                   ' ': IMAGESDICT['outside floor'],
+                   'r': IMAGESDICT['rock']}
     OUTSIDEDECOMAPPING = {'1': IMAGESDICT['rock'],
                           '2': IMAGESDICT['short tree'],
                           '3': IMAGESDICT['tall tree'],
@@ -95,11 +103,8 @@ def main():
 
     # Read in the levels from the text file. See the readLevelsFile() for
     # details on the format of this file and how to make your own levels.
-    ########################################################################################################### Барање 2
     levels = readLevelsFile('starPusherLevels.txt')
-    levels_random = random.sample(range(0, len(levels)), len(levels)-1)
-    index = 0
-    currentLevelIndex = levels_random[index]
+    currentLevelIndex = 0
 
     # The main game loop. This loop runs a single level, when the user
     # finishes that level, the next/previous level is loaded.
@@ -109,22 +114,19 @@ def main():
 
         if result in ('solved', 'next'):
             # Go to the next level.
-            index += 1
-            currentLevelIndex = levels_random[index]
+            currentLevelIndex += 1
             if currentLevelIndex >= len(levels):
                 # If there are no more levels, go back to the first one.
-                currentLevelIndex = levels_random[0]
+                currentLevelIndex = 0
         elif result == 'back':
             # Go to the previous level.
-            index -= 1
-            currentLevelIndex = levels_random[index]
+            currentLevelIndex -= 1
             if currentLevelIndex < 0:
                 # If there are no previous levels, go to the last one.
-                index = len(levels) - 1
-                currentLevelIndex = levels_random[index]
+                currentLevelIndex = len(levels)-1
         elif result == 'reset':
             pass # Do nothing. Loop re-calls runLevel() to reset the level
-########################################################################################################################
+
 
 def runLevel(levels, levelNum):
     global currentImage
@@ -150,7 +152,12 @@ def runLevel(levels, levelNum):
     cameraLeft = False
     cameraRight = False
 
+    start_ticks = pygame.time.get_ticks()
+    first = True
+    random_loc = ''
     while True: # main game loop
+        seconds = (pygame.time.get_ticks() - start_ticks) / 1000
+        seconds = int(seconds)
         # Reset these variables:
         playerMoveTo = None
         keyPressed = False
@@ -171,26 +178,28 @@ def runLevel(levels, levelNum):
                     playerMoveTo = UP
                 elif event.key == K_DOWN:
                     playerMoveTo = DOWN
-            ################################################################################################### БАРАЊЕ 1
+
                 # Set the camera move mode.
-                elif event.key == K_s:  # Движи левво со S
+                elif event.key == K_a:
                     cameraLeft = True
-                elif event.key == K_f:  # Движи десно со F
+                elif event.key == K_d:
                     cameraRight = True
-                elif event.key == K_e:  # Движи горе со E
+                elif event.key == K_w:
                     cameraUp = True
-                elif event.key == K_d:  # Движи долу со D
+                elif event.key == K_s:
                     cameraDown = True
-                elif event.key == K_j:   # Следно ниво со J
-                    return 'next'
-                elif event.key == K_p:   # Назад ниво со P
+                #################################################################################### Барање 4
+                # elif event.key == K_n:
+                #     return 'next'
+                #############################################################################################
+                elif event.key == K_b:
                     return 'back'
 
                 elif event.key == K_ESCAPE:
                     terminate() # Esc key quits.
                 elif event.key == K_BACKSPACE:
                     return 'reset' # Reset the level.
-                elif event.key == K_q:
+                elif event.key == K_p:
                     # Change the player image to the next one.
                     currentImage += 1
                     if currentImage >= len(PLAYERIMAGES):
@@ -200,15 +209,14 @@ def runLevel(levels, levelNum):
 
             elif event.type == KEYUP:
                 # Unset the camera move mode.
-                if event.key == K_s:    # Движи левво со S
+                if event.key == K_a:
                     cameraLeft = False
-                elif event.key == K_f:  # Движи десно со F
+                elif event.key == K_d:
                     cameraRight = False
-                elif event.key == K_e:  # Движи горе со E
+                elif event.key == K_w:
                     cameraUp = False
-                elif event.key == K_d:  # Движи долу со D
+                elif event.key == K_s:
                     cameraDown = False
-            ############################################################################################################
 
         if playerMoveTo != None and not levelIsComplete:
             # If the player pushed a key to move, make the move
@@ -222,13 +230,14 @@ def runLevel(levels, levelNum):
 
             if isLevelFinished(levelObj, gameStateObj):
                 # level is solved, we should show the "Solved!" image.
+                start_ticks = pygame.time.get_ticks()
                 levelIsComplete = True
                 keyPressed = False
 
         DISPLAYSURF.fill(BGCOLOR)
 
         if mapNeedsRedraw:
-            mapSurf = drawMap(mapObj, gameStateObj, levelObj['goals'])
+            mapSurf, first, random_loc = drawMap(mapObj, gameStateObj, levelObj['goals'], first, random_loc)
             mapNeedsRedraw = False
 
         if cameraUp and cameraOffsetY < MAX_CAM_X_PAN:
@@ -256,12 +265,20 @@ def runLevel(levels, levelNum):
         if levelIsComplete:
             # is solved, show the "Solved!" image until the player
             # has pressed a key.
+            first = True
+            random_loc = ''
             solvedRect = IMAGESDICT['solved'].get_rect()
             solvedRect.center = (HALF_WINWIDTH, HALF_WINHEIGHT)
             DISPLAYSURF.blit(IMAGESDICT['solved'], solvedRect)
 
             if keyPressed:
                 return 'solved'
+        else: #################################################################################### Барање 2
+            elapsedSurf = BASICFONT.render(f'Elapsed time: {seconds}s', 1, TEXTCOLOR)
+            elapsedRect = elapsedSurf.get_rect()
+            elapsedRect.bottomleft = (20, WINHEIGHT - 60)
+            DISPLAYSURF.blit(elapsedSurf, elapsedRect)
+            ################################################################################################
 
         pygame.display.update() # draw DISPLAYSURF to the screen.
         FPSCLOCK.tick()
@@ -275,6 +292,16 @@ def isWall(mapObj, x, y):
     elif mapObj[x][y] in ('#', 'x'):
         return True # wall is blocking
     return False
+#################################################################################### Барање 5
+def isRock(mapObj, x, y):
+    """Returns True if the (x, y) position on
+        the map is a rock, otherwise return False."""
+    if x < 0 or x >= len(mapObj) or y < 0 or y >= len(mapObj[x]):
+        return False  # x and y aren't actually on the map.
+    elif mapObj[x][y] in ('r'):
+        return True  # rock is blocking
+    return False
+##########################################################################################
 
 
 def decorateMap(mapObj, startxy):
@@ -299,7 +326,6 @@ def decorateMap(mapObj, startxy):
 
     # Flood fill to determine inside/outside floor tiles.
     floodFill(mapObjCopy, startx, starty, ' ', 'o')
-
     # Convert the adjoined walls into corner tiles.
     for x in range(len(mapObjCopy)):
         for y in range(len(mapObjCopy[0])):
@@ -322,6 +348,9 @@ def isBlocked(mapObj, gameStateObj, x, y):
     blocked by a wall or star, otherwise return False."""
 
     if isWall(mapObj, x, y):
+        return True
+
+    elif isRock(mapObj, x, y):
         return True
 
     elif x < 0 or x >= len(mapObj) or y < 0 or y >= len(mapObj[x]):
@@ -395,9 +424,9 @@ def startScreen():
     # a time, so we can't use strings with \n newline characters in them.
     # So we will use a list with each line in it.
     instructionText = ['Push the stars over the marks.',
-                       'Arrow keys to move,ESDF for camera control, Q to change character.',
+                       'Arrow keys to move, WASD for camera control, P to change character.',
                        'Backspace to reset level, Esc to quit.',
-                       'J for next level, P to go back a level.']
+                       'N for next level, B to go back a level.']
 
     # Start with drawing a blank color to the entire window:
     DISPLAYSURF.fill(BGCOLOR)
@@ -538,11 +567,10 @@ def floodFill(mapObj, x, y, oldCharacter, newCharacter):
         floodFill(mapObj, x, y-1, oldCharacter, newCharacter) # call up
 
 
-def drawMap(mapObj, gameStateObj, goals):
+def drawMap(mapObj, gameStateObj, goals, flag, location_rock):
     """Draws the map to a Surface object, including the player and
     stars. This function does not call pygame.display.update(), nor
     does it draw the "Level" and "Steps" text in the corner."""
-
     # mapSurf will be the single Surface object that the tiles are drawn
     # on, so that it is easy to position the entire map on the DISPLAYSURF
     # Surface object. First, the width and height must be calculated.
@@ -550,12 +578,25 @@ def drawMap(mapObj, gameStateObj, goals):
     mapSurfHeight = (len(mapObj[0]) - 1) * TILEFLOORHEIGHT + TILEHEIGHT
     mapSurf = pygame.Surface((mapSurfWidth, mapSurfHeight))
     mapSurf.fill(BGCOLOR) # start with a blank color on the surface.
+    #################################################################################### Барање 5
+    if flag:
+        inside_tiles = {}
+        for x in range(len(mapObj)):
+            for y in range(len(mapObj[x])):
+                if mapObj[x][y] == 'o':
+                    inside_tiles[str(len(inside_tiles))] = (x, y)
+
+        location_rock = random.randint(0, len(inside_tiles))
+        location_rock = inside_tiles[str(location_rock)]
+        flag = False
 
     # Draw the tile sprites onto this surface.
     for x in range(len(mapObj)):
         for y in range(len(mapObj[x])):
             spaceRect = pygame.Rect((x * TILEWIDTH, y * TILEFLOORHEIGHT, TILEWIDTH, TILEHEIGHT))
-            if mapObj[x][y] in TILEMAPPING:
+            if (x, y) == location_rock:
+                baseTile = TILEMAPPING['r']
+            elif mapObj[x][y] in TILEMAPPING:
                 baseTile = TILEMAPPING[mapObj[x][y]]
             elif mapObj[x][y] in OUTSIDEDECOMAPPING:
                 baseTile = TILEMAPPING[' ']
@@ -583,8 +624,8 @@ def drawMap(mapObj, gameStateObj, goals):
                 # specific player image we want to show.
                 mapSurf.blit(PLAYERIMAGES[currentImage], spaceRect)
 
-    return mapSurf
-
+    return mapSurf, flag, location_rock
+##########################################################################################
 
 def isLevelFinished(levelObj, gameStateObj):
     """Returns True if all the goals have stars in them."""
